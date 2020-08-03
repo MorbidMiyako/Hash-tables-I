@@ -1,6 +1,24 @@
 def no_dups(s):
     # Your code here
+    # set automatically orders ;-;
+    """
+    if len(s.split(" ")) <= 1:
+        print(s)
+        return s
+    print(str(" ".join(list(set(s.split(" "))))))
+    return str(" ".join(list(set(s.split(" ")))))
+    """
+    wordsArray = s.split(" ")
+    returnArray = []
 
+    if len(wordsArray) <= 1:
+        print(s)
+        return s
+    for word in wordsArray:
+        if word not in returnArray:
+            returnArray.append(word)
+    print(" ".join(returnArray))
+    return " ".join(returnArray)
 
 
 if __name__ == "__main__":

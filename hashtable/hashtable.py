@@ -23,6 +23,7 @@ class HashTable:
 
     def __init__(self, capacity):
         self.capacity = capacity
+        self.load = 0
         self.array = [None]*capacity
 
     def get_num_slots(self):
@@ -43,7 +44,7 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        return self.load/self.capacity
 
     def fnv1(self, key):
         """
@@ -82,8 +83,18 @@ class HashTable:
 
         Implement this.
         """
-        new_hash = HashTableEntry(key, value)
-        self.array[self.hash_index(key)] = new_hash
+
+        requested_hash_location = self.hash_index(key)
+        if self.array[requested_hash_location] != None:
+            print(
+                f"Collision! Overwriting {repr(self.array[requested_hash_location])}")
+            new_hash = HashTableEntry(key, value)
+            new_hash.next = self.array[requested_hash_location]
+            self.array[requested_hash_location] = new_hash
+        else:
+            self.array[requested_hash_location] = HashTableEntry(key, value)
+        self.load += 1
+        return None
 
     def delete(self, key):
         """
@@ -93,7 +104,34 @@ class HashTable:
 
         Implement this.
         """
-        self.array[self.hash_index(key)] = None
+        requested_hash_location = self.hash_index(key)
+        current_hash = self.array[requested_hash_location]
+        if current_hash != None:
+            self.load -= 1
+            if current_hash.key == key:
+                self.array[requested_hash_location] = current_hash.next
+                return current_hash
+            previous_hash = current_hash
+            current_hash = current_hash.next
+            while current_hash is not None:
+                if current_hash.key == key:
+                    previous_hash.next = current_hash.next
+                    return current_hash
+                else:
+                    previous_hash = current_hash
+                    current_hash = current_hash.next
+        return None
+
+        """
+        """
+        # requested_hash_location = self.hash_index(key)
+        # if self.array[requested_hash_location] != None:
+        #     self.load -= 1
+        # else:
+        #     print(
+        #         f"Collision! Overwriting {repr(self.array[requested_hash_location])}")
+        # self.array[requested_hash_location] = None
+        # return None
 
     def get(self, key):
         """
@@ -103,10 +141,27 @@ class HashTable:
 
         Implement this.
         """
-        requested_hash = self.array[self.hash_index(key)]
-        if requested_hash != None:
-            return requested_hash.value
+        requested_hash_location = self.hash_index(key)
+        current_hash = self.array[requested_hash_location]
+        if current_hash != None:
+            if current_hash.key == key:
+                return current_hash.value
+            current_hash = current_hash.next
+            while current_hash is not None:
+                if current_hash.key == key:
+                    return current_hash.value
+                else:
+                    current_hash = current_hash.next
         return None
+
+        """
+        """
+        # requested_hash = self.array[self.hash_index(key)]
+        # if requested_hash != None:
+        #     return requested_hash.value
+        # else:
+        #     return None
+        # print("found exception!")
 
     def resize(self, new_capacity):
         """
@@ -116,6 +171,22 @@ class HashTable:
         Implement this.
         """
         # Your code here
+
+        # if self.load/self.capacity >= 0.7:
+        #     new_hashtable = HashTable(self.capacity*2)
+        # if self.load/self.capacity >= 0.2:
+        #     new_hashtable = HashTable(self.capacity*2)
+        # else:
+        #     return
+        new_hashtable = HashTable(new_capacity)
+        self.capacity = new_capacity
+        self.load = 0
+        for hash_entry in self.array:
+            current_hash = hash_entry
+            while current_hash is not None:
+                new_hashtable.put(current_hash.key, current_hash.value)
+                current_hash = current_hash.next
+        self.array = new_hashtable.array
 
 
 if __name__ == "__main__":
