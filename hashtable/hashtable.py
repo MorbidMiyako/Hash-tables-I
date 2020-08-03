@@ -2,6 +2,7 @@ class HashTableEntry:
     """
     Linked List hash table key/value pair
     """
+
     def __init__(self, key, value):
         self.key = key
         self.value = value
@@ -21,8 +22,9 @@ class HashTable:
     """
 
     def __init__(self, capacity):
-        # Your code here
-
+        self.capacity = capacity
+        self.load = 0
+        self.array = [None]*capacity
 
     def get_num_slots(self):
         """
@@ -34,8 +36,7 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
-
+        return self.capacity
 
     def get_load_factor(self):
         """
@@ -43,8 +44,7 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
-
+        return self.load/self.capacity
 
     def fnv1(self, key):
         """
@@ -55,22 +55,24 @@ class HashTable:
 
         # Your code here
 
-
     def djb2(self, key):
         """
         DJB2 hash, 32-bit
 
         Implement this, and/or FNV-1.
         """
-        # Your code here
-
+        print(key)
+        hash = 5381
+        for x in key:
+            hash = ((hash << 5) + hash) + ord(x)
+        return hash & 0xFFFFFFFF
 
     def hash_index(self, key):
         """
         Take an arbitrary key and return a valid integer index
         between within the storage capacity of the hash table.
         """
-        #return self.fnv1(key) % self.capacity
+        # return self.fnv1(key) % self.capacity
         return self.djb2(key) % self.capacity
 
     def put(self, key, value):
@@ -81,8 +83,18 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
 
+        requested_hash_location = self.hash_index(key)
+        if self.array[requested_hash_location] != None:
+            print(
+                f"Collision! Overwriting {repr(self.array[requested_hash_location])}")
+            new_hash = HashTableEntry(key, value)
+            new_hash.next = self.array[requested_hash_location]
+            self.array[requested_hash_location] = new_hash
+        else:
+            self.array[requested_hash_location] = HashTableEntry(key, value)
+        self.load += 1
+        return None
 
     def delete(self, key):
         """
@@ -92,8 +104,34 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        requested_hash_location = self.hash_index(key)
+        current_hash = self.array[requested_hash_location]
+        if current_hash != None:
+            self.load -= 1
+            if current_hash.key == key:
+                self.array[requested_hash_location] = current_hash.next
+                return current_hash
+            previous_hash = current_hash
+            current_hash = current_hash.next
+            while current_hash is not None:
+                if current_hash.key == key:
+                    previous_hash.next = current_hash.next
+                    return current_hash
+                else:
+                    previous_hash = current_hash
+                    current_hash = current_hash.next
+        return None
 
+        """
+        """
+        # requested_hash_location = self.hash_index(key)
+        # if self.array[requested_hash_location] != None:
+        #     self.load -= 1
+        # else:
+        #     print(
+        #         f"Collision! Overwriting {repr(self.array[requested_hash_location])}")
+        # self.array[requested_hash_location] = None
+        # return None
 
     def get(self, key):
         """
@@ -103,8 +141,27 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        requested_hash_location = self.hash_index(key)
+        current_hash = self.array[requested_hash_location]
+        if current_hash != None:
+            if current_hash.key == key:
+                return current_hash.value
+            current_hash = current_hash.next
+            while current_hash is not None:
+                if current_hash.key == key:
+                    return current_hash.value
+                else:
+                    current_hash = current_hash.next
+        return None
 
+        """
+        """
+        # requested_hash = self.array[self.hash_index(key)]
+        # if requested_hash != None:
+        #     return requested_hash.value
+        # else:
+        #     return None
+        # print("found exception!")
 
     def resize(self, new_capacity):
         """
@@ -115,6 +172,21 @@ class HashTable:
         """
         # Your code here
 
+        # if self.load/self.capacity >= 0.7:
+        #     new_hashtable = HashTable(self.capacity*2)
+        # if self.load/self.capacity >= 0.2:
+        #     new_hashtable = HashTable(self.capacity*2)
+        # else:
+        #     return
+        new_hashtable = HashTable(new_capacity)
+        self.capacity = new_capacity
+        self.load = 0
+        for hash_entry in self.array:
+            current_hash = hash_entry
+            while current_hash is not None:
+                new_hashtable.put(current_hash.key, current_hash.value)
+                current_hash = current_hash.next
+        self.array = new_hashtable.array
 
 
 if __name__ == "__main__":
